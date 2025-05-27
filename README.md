@@ -1,0 +1,218 @@
+# NMKR Launch Page Template
+
+A customizable NFT launch page template that integrates with NMKR Studio. This template allows NFT project creators to set up a professional launch page where their customers can mint NFTs.
+
+## For Project Creators
+
+This template is designed for NFT project creators who want to:
+- Create a professional launch page for their NFT project(s)
+- Allow customers to mint NFTs directly from the page
+- Display project information, roadmap, team, and FAQs
+- Support multiple NFT projects on a single page
+
+## Features
+
+- 🎨 Clean, modern design
+- 🌓 Light/Dark theme support
+- 📱 Fully responsive
+- 🎯 Integrated server for NMKR Studio API calls
+- 🔄 Real-time minting statistics
+- 📊 Multiple minting options
+- 🎭 Customizable content sections
+- 🔗 Social media integration
+- 📦 Support for multiple NFT projects
+
+## Quick Start for Project Creators
+
+1. Fork this repository
+2. Clone your fork:
+```bash
+git clone https://github.com/your-username/NMKR-Launchpage-Template.git
+```
+
+3. Install dependencies:
+```bash
+npm install
+```
+
+4. Create a `.env` file in the root directory:
+```env
+PORT=3000
+NMKR_API_KEY=your_api_key_here
+
+# Add your project UIDs (you can add as many as you need)
+# The projectname must match the projectName in the config.js file 
+# ( For projectName: 'project1' in the config.js , 
+# the env must contain: NMKR_PROJECT_UID_PROJECT1=your_project_UID )
+
+NMKR_PROJECT_UID_PROJECT1=your_project1_uid_here
+NMKR_PROJECT_UID_PROJECT2=your_project2_uid_here
+```
+
+5. Customize the configuration in `js/config.js`:
+```javascript
+const config = {
+    // Site and Style Configuration
+    site: {
+        title: 'Brand Title',
+        subtitle: 'This is your subtitle',
+        logo: 'path/to/your/logo.png', // Example: 'https://placehold.co/200x80/11f250/000000?text=Your_logo'
+        favicon: 'path/to/your/favicon.ico', // Example: 'https://placehold.co/32x32/11f250/000000?text=NMKR'
+        defaultTheme: 'dark', // 'light' or 'dark'
+        colors: {
+            accent: '#11f250',      // Main accent color
+            accentHover: '#0edf45', // Accent color on hover
+            accentText: '#000000'   // Text color on accent backgrounds
+        },
+        banner: {
+            image: 'path/to/your/banner.jpg', // Example: 'https://placehold.co/1200x400/11f250/000000?text=Banner'
+            overlay: {
+                enabled: true,
+                title: 'Your Featured Collection',
+                description: 'Discover our latest and most exclusive NFT collection',
+                cta: {
+                    enabled: true, // Set to false to remove the button
+                    text: 'Call to Action',
+                    link: 'https://your-link.com'
+                }
+            }
+        },
+        about: {
+            title: 'About Section Title',
+            content: 'Your about section content in HTML format'
+        }
+    },
+
+    // Project Information
+    projects: [
+        {
+            name: 'Your Project Name',
+            description: 'Your project description',
+            image: 'your-project-image-url', 
+            projectName: 'project1' // Corresponds to NMKR_PROJECT_UID_PROJECT1 in .env
+        }
+        // Add more projects as needed
+    ],
+
+    // Social Links
+    social: {
+        twitter: 'https://twitter.com/yourproject',
+        discord: 'https://discord.gg/yourproject',
+        telegram: 'https://t.me/yourproject'
+    }
+};
+```
+
+6. Start the server:
+```bash
+# Development mode
+npm run dev
+
+# Production mode
+npm start
+```
+
+7. Deploy to your preferred hosting service (Heroku, DigitalOcean, etc.)
+
+## Configuration Guide
+
+### NMKR API Configuration
+The `nmkr` object in `js/config.js` is used for configuring aspects of the NMKR API integration that might be relevant on the client side.
+
+```javascript
+// Example from js/config.js
+nmkr: {
+    apiKey: 'YOUR_NMKR_API_KEY',    // This is primarily for client-side reference if needed for specific UI features.
+                                    // The actual API key for server-side calls MUST be set in your .env file (NMKR_API_KEY).
+    projectUid: 'YOUR_PROJECT_UID', // This is a general placeholder. Specific project UIDs for server-side
+                                    // operations are fetched from .env (e.g., NMKR_PROJECT_UID_PROJECT1).
+    baseUrl: 'https://studio-api.nmkr.io' // Base URL for NMKR Studio API
+}
+```
+**Important:** For security and proper functionality, your `NMKR_API_KEY` (used by the server to communicate with NMKR services) and the specific `NMKR_PROJECT_UID_<projectName>` values (which link your frontend project entries to specific NMKR Studio projects) **must** be stored in your `.env` file. The server uses these environment variables for all sensitive operations and API calls. The `js/config.js` file can hold placeholders or configurations for client-side display logic if needed, but should not be the source of truth for sensitive credentials used by the backend.
+
+### Site Configuration
+The `site` object in `config.js` controls the main visual elements of your launch page:
+
+```javascript
+site: {
+    title: 'Brand Title',                // Main page title
+    subtitle: 'This is your subtitle',   // Page subtitle
+    logo: 'path/to/your/logo.png',       // URL or path to your logo. Example: 'https://placehold.co/200x80/11f250/000000?text=Your_logo'
+    favicon: 'path/to/your/favicon.ico', // URL or path to your favicon. Example: 'https://placehold.co/32x32/11f250/000000?text=NMKR'
+    defaultTheme: 'dark',                // Default theme: 'light' or 'dark'
+    colors: {
+        accent: '#11f250',               // Main accent color
+        accentHover: '#0edf45',          // Accent color on hover
+        accentText: '#000000'            // Text color on accent backgrounds
+    },
+    banner: {
+        image: 'path/to/your/banner.jpg', // URL or path to your banner image. Example: 'https://placehold.co/1200x400/11f250/000000?text=Banner'
+        overlay: {
+            enabled: true,                // Set to false to hide the overlay
+            title: 'Your Banner Title',
+            description: 'Your banner description text',
+            cta: {
+                enabled: true,            // Set to false to remove the Call to Action button
+                text: 'Call to Action',
+                link: 'https://your-link.com'
+            }
+        }
+    },
+    about: {
+        title: 'About Section Title',
+        content: 'Your about section content in HTML format. You can use <p> tags for paragraphs.' // Example: '<p>Welcome to our project!</p><p>Learn more about us.</p>'
+    }
+}
+```
+
+### Project Configuration
+Each project in the `projects` array in `js/config.js` configures how a specific NFT project is displayed on your launch page.
+
+```javascript
+// js/config.js
+{
+    name: 'Project Name',          // Display name of your project
+    description: 'Description',    // Project description
+    image: 'image-url',           // Project image URL (e.g., a preview or representative image for the collection)
+                                  // Example: 'https://placehold.co/400x400/11f250/000000?text=Project+1'
+    projectName: 'project1'       // Unique identifier for the project. This is crucial as it links this
+                                  // frontend configuration to a specific project UID defined in your .env file.
+                                  // For example, if projectName is 'project1', the server will look for
+                                  // an environment variable named NMKR_PROJECT_UID_PROJECT1 to get the actual NMKR Studio Project UID.
+}
+```
+Details such as price per NFT, minting limits, and remaining supply are typically managed within your NMKR Studio project settings. The backend server fetches this information dynamically using the project UID (derived from `projectName` and your `.env` file) and makes it available to the frontend. The `js/config.js` entries primarily handle the static display information like name, description, and a representative image for the project on the launch page. Ensure the `projectName` here matches the suffix of the corresponding `NMKR_PROJECT_UID_` variable in your `.env` file.
+
+### Social Links
+Configure your social media presence:
+
+```javascript
+social: {
+    twitter: 'https://twitter.com/yourproject',
+    discord: 'https://discord.gg/yourproject',
+    telegram: 'https://t.me/yourproject'
+}
+```
+
+## Development
+
+To modify the template:
+
+1. Make your changes to the HTML, CSS, or JavaScript files
+2. Start the development server: `npm run dev` / for production deployment `npm start`
+3. Test your changes at `http://localhost:3000`
+4. Commit and push your changes
+5. Deploy to your hosting service
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support with NMKR Studio integration, please contact our support via https://nmkr.io/support.

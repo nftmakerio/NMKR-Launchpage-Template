@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">NMKR Launch Page Template</title>
+    <link rel="icon" type="image/x-icon" id="site-favicon">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img id="site-logo" src="https://placehold.co/200x80/11f250/000000?text=LOGO" alt="Logo">
+            </div>
+            <div class="nav-right-group" id="nav-right-group-desktop">
+                <div class="nav-links" id="nav-links-menu">
+                    <a href="#about">About</a>
+                    <a href="#explore">Explore</a>
+                </div>
+                <div class="theme-switch" id="theme-switch-container">
+                    <input type="checkbox" id="theme-toggle">
+                    <label for="theme-toggle">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </label>
+                </div>
+            </div>
+            <button class="hamburger" id="hamburger-menu" aria-label="Toggle menu" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1 id="site-title">Change Title Here</h1>
+            <p id="site-subtitle">Change subtitle here</p>
+        </section>
+
+        <section class="banner">
+            <div class="banner-content">
+                <img id="banner-image" src="https://placehold.co/1200x400/11f250/000000?text=Banner" alt="Featured Collection Banner" class="banner-image">
+                <div class="banner-overlay">
+                    <h2 id="banner-title">Featured Collection</h2>
+                    <p id="banner-description">Discover our latest and most exclusive NFT collection</p>
+                    <a href="#" class="banner-cta" id="banner-cta">Explore Now</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="explore" class="projects-grid">
+            <!-- Project cards will be dynamically added here -->
+        </section>
+
+        <section id="about" class="about">
+            <h2 id="about-title">About</h2>
+            <div id="aboutContent">
+                <p>Add your about content here</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="social-links">
+            <a href="#" id="twitter-link" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="#" id="discord-link" target="_blank"><i class="fab fa-discord"></i></a>
+            <a href="#" id="telegram-link" target="_blank"><i class="fab fa-telegram"></i></a>
+        </div>
+        <p id="copyright">&copy; 2024 Your Project. All rights reserved.</p>
+        <a href="https://nmkr.io" target="_blank"><img src="css/built_on_NMKR.svg" alt="Powered by NMKR"></a>
+    </footer>
+
+    <!-- Mint Modal -->
+    <div id="mint-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="mint-container">
+                <h2 id="modal-project-title">Project Title</h2>
+                <div class="mint-controls">
+                    <div class="quantity-slider-container">
+                        <input type="range" id="mint-quantity-slider" min="1" max="10" value="1">
+                        <span id="mint-quantity-value" class="quantity-value-display">1</span>
+                    </div>
+                    <button class="mint-button">Mint Now</button>
+                </div>
+                <p class="mint-price">Price</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html> 
