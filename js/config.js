@@ -4,9 +4,9 @@
 const config = {
     // NMKR API Configuration
     nmkr: {
-        apiKey: 'YOUR_NMKR_API_KEY',
-        projectUid: 'YOUR_PROJECT_UID',
-        baseUrl: 'https://studio-api.nmkr.io'
+        apiKey: 'YOUR_NMKR_API_KEY', // Do not touch this! Provide your API Key in the env file
+        projectUid: 'YOUR_PROJECT_UID', // Do not touch this! Provide your Project UID in the env file
+        baseUrl: 'https://studio-api.nmkr.io' // Do not touch this!
     },
 
     // Site and Style Configuration
