@@ -2,7 +2,7 @@
 
 A customizable NFT launch page template that integrates with NMKR Studio. This template allows NFT project creators to set up a professional launch page where their customers can mint NFTs.
 
-Project Preview Video https://c-ipfs-gw.nmkr.io/ipfs/QmNb3wo7dTihCkydSYY7GJYqYkTbQk8GeWyNyJrEky8jG5
+Preview Video https://c-ipfs-gw.nmkr.io/ipfs/QmNb3wo7dTihCkydSYY7GJYqYkTbQk8GeWyNyJrEky8jG5
 
 ## For Project Creators
 
