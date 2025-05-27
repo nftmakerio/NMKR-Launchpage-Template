@@ -62,7 +62,12 @@ function setSiteConfiguration() {
     
     // Set banner section
     const bannerImage = document.getElementById('banner-image');
-    if (bannerImage) bannerImage.src = config.site.banner.image;
+    if (bannerImage) {
+        bannerImage.src = config.site.banner.image;
+        if (config.site.banner.mobileImage) {
+            document.documentElement.style.setProperty('--mobile-banner-image', `url(${config.site.banner.mobileImage})`);
+        }
+    }
     
     if (config.site.banner.overlay.enabled) {
         const bannerTitle = document.getElementById('banner-title');
@@ -107,6 +112,11 @@ function setSiteConfiguration() {
     root.style.setProperty('--primary-color', config.site.colors.accent);
     root.style.setProperty('--hover-color', config.site.colors.accentHover);
     root.style.setProperty('--accent-text-color', config.site.colors.accentText);
+    
+    // Apply font configuration
+    if (config.site.fonts) {
+        root.style.setProperty('--primary-font', config.site.fonts.primary);
+    }
 }
 
 // Create project cards
@@ -404,6 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    applyTypographySettings();
 });
 
 async function updateProjectCounts(projectName) {
@@ -574,4 +586,30 @@ function updateThemeToggleLocation() {
             navRightGroupDesktop.appendChild(themeSwitchContainer); 
         }
     }
+}
+
+// Apply typography settings from config
+function applyTypographySettings() {
+    const root = document.documentElement;
+    const typography = config.site.typography;
+
+    // Apply font sizes
+    Object.entries(typography.sizes).forEach(([key, value]) => {
+        root.style.setProperty(`--font-size-${key}`, value);
+    });
+
+    // Apply font weights
+    Object.entries(typography.weights).forEach(([key, value]) => {
+        root.style.setProperty(`--font-weight-${key}`, value);
+    });
+
+    // Apply line heights
+    Object.entries(typography.lineHeights).forEach(([key, value]) => {
+        root.style.setProperty(`--line-height-${key}`, value);
+    });
+
+    // Apply letter spacing
+    Object.entries(typography.letterSpacing).forEach(([key, value]) => {
+        root.style.setProperty(`--letter-spacing-${key}`, value);
+    });
 } 
