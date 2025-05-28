@@ -4,6 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
+const NodeCache = require('node-cache');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +17,9 @@ app.use(express.static(__dirname));
 // NMKR API Configuration
 const NMKR_API_KEY = process.env.NMKR_API_KEY;
 const NMKR_API_BASE_URL = 'https://studio-api.nmkr.io';
+
+// Initialize cache with a 5-minute TTL
+const appCache = new NodeCache({ stdTTL: 300 });
 
 // Get all project UIDs from environment variables
 const projectUids = Object.keys(process.env)
@@ -158,6 +162,13 @@ app.get('/api/stats/:projectName', async (req, res) => {
 // Get NFT counts endpoint
 app.get('/api/counts/:projectName', async (req, res) => {
     const { projectName: projectNameFromParams } = req.params;
+    const cacheKey = `counts_${projectNameFromParams.toLowerCase()}`;
+
+    if (appCache.has(cacheKey)) {
+        console.log(`[CACHE] Serving counts for ${projectNameFromParams} from cache.`);
+        return res.json(appCache.get(cacheKey));
+    }
+
     try {
         const projectUid = projectUids[projectNameFromParams.toLowerCase()];
         
@@ -183,6 +194,7 @@ app.get('/api/counts/:projectName', async (req, res) => {
             headers: response.headers
         });
 
+        appCache.set(cacheKey, response.data); // Cache the response
         res.json(response.data); // Forward NMKR's response
     } catch (error) {
         console.error(`[ERROR] Counts error for project: ${projectNameFromParams}`, {
@@ -201,6 +213,13 @@ app.get('/api/counts/:projectName', async (req, res) => {
 // Get NFT pricelist endpoint
 app.get('/api/pricelist/:projectName', async (req, res) => {
     const { projectName: projectNameFromParams } = req.params;
+    const cacheKey = `pricelist_${projectNameFromParams.toLowerCase()}`;
+
+    if (appCache.has(cacheKey)) {
+        console.log(`[CACHE] Serving pricelist for ${projectNameFromParams} from cache.`);
+        return res.json(appCache.get(cacheKey));
+    }
+
     try {
         const projectUid = projectUids[projectNameFromParams.toLowerCase()];
 
@@ -226,6 +245,7 @@ app.get('/api/pricelist/:projectName', async (req, res) => {
         });
 
         if (Array.isArray(response.data)) {
+            appCache.set(cacheKey, response.data); // Cache the response
             res.json(response.data);
         } else {
             console.error(`[ERROR] Unexpected pricelist data format for ${projectNameFromParams}:`, response.data);
