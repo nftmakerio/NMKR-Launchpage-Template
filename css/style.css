@@ -488,6 +488,32 @@ nav {
     box-shadow: 0 4px 16px var(--shadow-color);
 }
 
+.custom-pricing-disclaimer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: var(--stats-background);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    color: var(--stats-text);
+    text-align: center;
+    line-height: 1.4;
+}
+
+.custom-pricing-disclaimer i {
+    color: var(--primary-color);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.custom-pricing-disclaimer span {
+    font-weight: 500;
+}
+
 /* Modal */
 .modal {
     display: none;
@@ -731,6 +757,54 @@ footer {
     text-align: center;
 }
 
+/* Custom Price Container */
+.custom-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 350px;
+}
+
+.custom-price-label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.custom-price-input {
+    width: 100%;
+    max-width: 200px;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 1.1rem;
+    text-align: center;
+    transition: border-color 0.3s ease;
+}
+
+.custom-price-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(17, 242, 80, 0.1);
+}
+
+.custom-price-input::placeholder {
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+.custom-price-help {
+    font-size: 0.875rem;
+    color: var(--stats-text);
+    text-align: center;
+    margin-top: 0.25rem;
+    opacity: 0.8;
+}
 
 .mint-price {
     font-size: 1.5rem; 
@@ -857,4 +931,100 @@ footer {
     section {
         padding: 2rem 1rem;
     }
+} 
+
+/* Styles for modal payment information display */
+.modal-payment-info {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--stats-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.modal-payment-info p {
+    margin-bottom: 0.5rem;
+}
+
+.modal-payment-info strong {
+    color: var(--primary-color);
+}
+
+.payment-address-display {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    display: block;
+    background-color: var(--background-color);
+    padding: 0.75rem;
+    border-radius: 5px;
+    border: 1px solid var(--border-color); 
+    font-family: var(--primary-font), sans-serif; 
+    font-size: 1rem;
+    text-align: left; 
+    flex-grow: 1;
+    line-height: 1.4;
+    color: var(--primary-color);
+    min-width: 250px;
+}
+
+.payment-address-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; 
+    margin-top: 1.25rem;
+    margin-bottom: 1.0rem;
+    font-family: var(--primary-font), sans-serif;
+    font-weight: var(--font-weight-medium, 500);
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    flex-shrink: 0; 
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-button {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    transition: background 0.15s;
+    outline: none;
+}
+
+.copy-button:hover, .copy-button:focus {
+    /* background: var(--primary-color, #11f250); */
+}
+
+.copy-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.custom-copy-icon {
+    display: block;
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color, #11f250);
+    fill: var(--primary-color, #11f250);
+    pointer-events: none;
+}
+
+.payment-expiry-display {
+    font-size: 0.85em;
+    margin-top: 1.25rem !important;
+    opacity: 0.8;
 } 

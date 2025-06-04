@@ -50,16 +50,14 @@ app.get('/api/projects', (req, res) => {
 app.post('/api/mint/:projectName', async (req, res) => {
     const { projectName: projectNameFromParams } = req.params;
     try {
-        const { quantity } = req.body; // Only quantity is needed from frontend for this call
-        
-        console.log(`[INFO] GetNmkrPayLink request for project: ${projectNameFromParams}`, {
+        const { quantity, customPrice, isCustomPricing } = req.body;
+
+        console.log(`[INFO] Mint request for project: ${projectNameFromParams}`, {
             quantity,
+            customPrice,
+            isCustomPricing,
             body: req.body
         });
-
-        if (typeof quantity !== 'number' || quantity <= 0) {
-            return res.status(400).json({ error: 'Invalid quantity provided' });
-        }
 
         const projectUid = projectUids[projectNameFromParams.toLowerCase()];
         if (!projectUid) {
@@ -67,45 +65,95 @@ app.post('/api/mint/:projectName', async (req, res) => {
             return res.status(404).json({ error: 'Project not found' });
         }
 
-        // Construct payload for /v2/GetNmkrPayLink
-        const nmkrPayPayload = {
-            projectUid: projectUid,
-            paymentTransactionType: "nmkr_pay_random",
-            paymentgatewayParameters: {
-                mintNfts: {
-                    countNfts: quantity
-                    // No reserveNfts or lovelace needed for THIS specific GetNmkrPayLink call payload
+        if (isCustomPricing) {
+            if (typeof customPrice !== 'number' || customPrice <= 0) {
+                return res.status(400).json({ error: 'Invalid custom price provided' });
+            }
+            const countNfts = 1; 
+            const priceInLovelace = Math.round(customPrice * 1000000);
+
+            const getPaymentAddressUrl = `${NMKR_API_BASE_URL}/v2/GetPaymentAddressForRandomNftSale/${projectUid}/${countNfts}/${priceInLovelace}?addresstype=Enterprise&blockchain=Cardano`;
+
+            console.log(`[INFO] Calling NMKR API for GetPaymentAddressForRandomNftSale (v2):`, {
+                projectUid,
+                countNfts,
+                priceInLovelace,
+                url: getPaymentAddressUrl
+            });
+
+            const response = await axios.get(getPaymentAddressUrl, {
+                headers: {
+                    'Authorization': `Bearer ${NMKR_API_KEY}`,
+                    'accept': 'text/plain'
                 }
+            });
+
+            console.log(`[INFO] NMKR API GetPaymentAddressForRandomNftSale Response (v2):`, {
+                status: response.status,
+                data: response.data,
+            });
+
+            const paymentAddress = response.data.paymentAddress;
+            const lovelaceAmount = response.data.priceInLovelace;
+            const expires = response.data.expires;
+            
+            if (typeof lovelaceAmount !== 'number') {
+                console.error('[ERROR] priceInLovelace is not a number:', lovelaceAmount);
+                return res.status(500).json({ error: 'Invalid price data from NMKR API' });
             }
-        };
+            const adaForDisplay = lovelaceAmount / 1000000;
 
-        const getNmkrPayLinkUrl = `${NMKR_API_BASE_URL}/v2/GetNmkrPayLink`; // Updated to v2
+            res.json({
+                paymentAddress,
+                adaForDisplay: adaForDisplay.toFixed(2),
+                expires
+            });
 
-        console.log(`[INFO] Calling NMKR API for GetNmkrPayLink (v2):`, {
-            projectUid,
-            quantity,
-            url: getNmkrPayLinkUrl,
-            payload: nmkrPayPayload
-        });
-
-        const response = await axios.post(getNmkrPayLinkUrl, nmkrPayPayload, {
-            headers: {
-                'Authorization': `Bearer ${NMKR_API_KEY}`,
-                'Content-Type': 'application/json',
-                'accept': 'text/plain' // Added accept header
+        } else {
+            // Existing logic for non-custom priced projects (GetNmkrPayLink)
+            if (typeof quantity !== 'number' || quantity <= 0) {
+                return res.status(400).json({ error: 'Invalid quantity provided' });
             }
-        });
 
-        console.log(`[INFO] NMKR API GetNmkrPayLink Response (v2):`, {
-            status: response.status,
-            data: response.data,
-            headers: response.headers
-        });
+            const nmkrPayPayload = {
+                projectUid: projectUid,
+                paymentTransactionType: "nmkr_pay_random",
+                paymentgatewayParameters: {
+                    mintNfts: {
+                        countNfts: quantity
+                    }
+                }
+            };
 
-        res.json(response.data); // Forward NMKR's response to the frontend
+            const getNmkrPayLinkUrl = `${NMKR_API_BASE_URL}/v2/GetNmkrPayLink`;
+
+            console.log(`[INFO] Calling NMKR API for GetNmkrPayLink (v2):`, {
+                projectUid,
+                quantity,
+                url: getNmkrPayLinkUrl,
+                payload: nmkrPayPayload
+            });
+
+            const response = await axios.post(getNmkrPayLinkUrl, nmkrPayPayload, {
+                headers: {
+                    'Authorization': `Bearer ${NMKR_API_KEY}`,
+                    'Content-Type': 'application/json',
+                    'accept': 'text/plain'
+                }
+            });
+
+            console.log(`[INFO] NMKR API GetNmkrPayLink Response (v2):`, {
+                status: response.status,
+                data: response.data,
+                headers: response.headers
+            });
+
+            res.json(response.data);
+        }
     } catch (error) {
-        console.error('[ERROR] GetNmkrPayLink process error:', {
+        console.error('[ERROR] Minting process error:', {
             project: projectNameFromParams,
+            isCustomPricing,
             message: error.message,
             response: error.response?.data,
             status: error.response?.status,

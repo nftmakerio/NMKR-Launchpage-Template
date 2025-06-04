@@ -112,19 +112,24 @@ const config = {
             name: 'Project 1', //change the project name here
             description: 'A unique collection of digital art pieces', //change the description here
             image: 'https://placehold.co/400x400/1E1E1E/11f250', //change the image here, recommended size: 400x400
-            projectName: 'project1' //change the project name here, must match in the env file (For projectName: 'project1' the env must contain: NMKR_PROJECT_UID_PROJECT1=your_project_UID )
+            projectName: 'project1', //change the project name here, must match in the env file (For projectName: 'project1' the env must contain: NMKR_PROJECT_UID_PROJECT1=your_project_UID )
+            custom_pricing: false // Set to true to enable custom pricing mode (hides price display on card, allows custom price input in mint modal)
         },
         {
             name: 'Project 2',
             description: 'Exclusive NFT collection with special utilities',
             image: 'https://placehold.co/400x400/1E1E1E/11f250',
-            projectName: 'project2'
+            projectName: 'project2',
+            custom_pricing: true, // Example: This project uses custom pricing
+            minimumCustomPrice: 6.5 // Minimum price for custom pricing (in ADA). Only applies when custom_pricing is true
+                                    // For Multisig transactions 4.0 ADA, for regular transactions 6.5 ADA - set up in pricelist settings of NMKR Studio
         },
         {
             name: 'Project 3',
             description: 'Limited edition collectibles with rare attributes',
             image: 'https://placehold.co/400x400/1E1E1E/11f250',
-            projectName: 'project3'
+            projectName: 'project3',
+            custom_pricing: false
         }
     ],
 

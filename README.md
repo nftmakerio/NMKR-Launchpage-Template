@@ -9,6 +9,7 @@ Preview Video https://c-ipfs-gw.nmkr.io/ipfs/QmNb3wo7dTihCkydSYY7GJYqYkTbQk8GeWy
 This template is designed for NFT project creators who want to:
 - Create a professional launch page for their NFT project(s)
 - Allow customers to mint NFTs directly from the page
+- Enable custom pricing for donations / pay-what-you-want pricing models
 - Display project information, roadmap, team, and FAQs
 - Support multiple NFT projects on a single page
 
@@ -20,6 +21,7 @@ This template is designed for NFT project creators who want to:
 - 🎯 Integrated server for NMKR Studio API calls
 - 🔄 Real-time minting statistics
 - 📊 Multiple minting options
+- 💰 Custom pricing support(pay-what-you-want)
 - 🎭 Customizable content sections
 - 🔗 Social media integration
 - 📦 Support for multiple NFT projects
@@ -91,7 +93,16 @@ const config = {
             name: 'Your Project Name',
             description: 'Your project description',
             image: 'your-project-image-url', 
-            projectName: 'project1' // Corresponds to NMKR_PROJECT_UID_PROJECT1 in .env
+            projectName: 'project1', // Corresponds to NMKR_PROJECT_UID_PROJECT1 in .env
+            custom_pricing: false // Set to true to enable custom pricing mode
+        },
+        {
+            name: 'Donation Project',
+            description: 'Support our cause with a custom donation amount',
+            image: 'your-donation-project-image-url',
+            projectName: 'project2',
+            custom_pricing: true, // Enable custom pricing for donations
+            minimumCustomPrice: 5.0 // Minimum donation amount in ADA
         }
         // Add more projects as needed
     ],
@@ -185,6 +196,40 @@ Each project in the `projects` array in `js/config.js` configures how a specific
 }
 ```
 Details such as price per NFT, minting limits, and remaining supply are typically managed within your NMKR Studio project settings. The backend server fetches this information dynamically using the project UID (derived from `projectName` and your `.env` file) and makes it available to the frontend. The `js/config.js` entries primarily handle the static display information like name, description, and a representative image for the project on the launch page. Ensure the `projectName` here matches the suffix of the corresponding `NMKR_PROJECT_UID_` variable in your `.env` file.
+
+### Custom Pricing Configuration
+Enable custom pricing for projects where users can specify their own ADA amount - perfect for donations, pay-what-you-want models, or flexible minting scenarios.
+
+```javascript
+// js/config.js
+{
+    name: 'Donation Project',
+    description: 'Support our cause with your preferred amount',
+    image: 'image-url',
+    projectName: 'donation1',
+    custom_pricing: true,                    // Enable custom pricing mode
+    minimumCustomPrice: 5.0                  // Minimum price in ADA (optional)
+    // For Multisig transactions 4.0 ADA, for regular transactions 6.5 ADA - set up in pricelist settings of NMKR Studio
+}
+```
+
+#### Custom Pricing Features:
+- **Flexible Amount Entry**: Users can enter any ADA amount they wish to pay
+- **Minimum Price Validation**: Set a minimum amount to ensure transaction viability
+- **Fixed Quantity**: Custom pricing projects mint exactly 1 NFT per transaction
+- **Smart UI**: Price display is hidden on project cards, replaced with an informative disclaimer
+- **Real-time Validation**: Immediate feedback on price requirements during entry
+
+#### Use Cases:
+- **Donation Campaigns**: Allow supporters to contribute any amount they choose
+- **Pay-What-You-Want**: Let customers decide the value of your NFT
+- **Flexible Fundraising**: Perfect for charity projects or community funding
+
+#### Configuration Notes:
+- Set `custom_pricing: true` to enable the feature
+- Use `minimumCustomPrice` to enforce minimum viable transaction amounts
+- Consider NMKR Studio transaction fees when setting minimums (Multisig: 4.0 ADA, Regular: 6.5 ADA)
+- The project card will show a disclaimer instead of fixed pricing information
 
 ### Social Links
 Configure your social media presence:

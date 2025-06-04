@@ -13,8 +13,15 @@ const navLinksMenu = document.getElementById('nav-links-menu');
 const themeSwitchContainer = document.getElementById('theme-switch-container');
 const navRightGroupDesktop = document.getElementById('nav-right-group-desktop');
 
+// Custom pricing elements
+const quantitySliderContainer = document.getElementById('quantity-slider-container');
+const customPriceContainer = document.getElementById('custom-price-container');
+const customPriceInput = document.getElementById('custom-price-input');
+const customPriceHelp = document.getElementById('custom-price-help');
+
 let activeProjectIndex = null; 
 let projectPricelists = {}; 
+let expiryCountdownInterval = null; 
 
 // Initialize theme
 function initTheme() {
@@ -131,7 +138,30 @@ function updateModalPriceDisplay() {
         if (modalActualMintButton) modalActualMintButton.disabled = true;
         return;
     }
+    
     const project = config.projects[activeProjectIndex];
+    
+    // Handle custom pricing mode
+    if (project.custom_pricing) {
+        const customPrice = parseFloat(customPriceInput.value);
+        const minimumPrice = project.minimumCustomPrice || 0;
+        
+        if (customPrice && customPrice > 0) {
+            if (customPrice >= minimumPrice) {
+                modalMintPrice.textContent = `${customPrice.toFixed(2)} ADA (Custom Price)`;
+                if (modalActualMintButton) modalActualMintButton.disabled = false;
+            } else {
+                modalMintPrice.textContent = `Minimum price: ${minimumPrice} ADA`;
+                if (modalActualMintButton) modalActualMintButton.disabled = true;
+            }
+        } else {
+            modalMintPrice.textContent = 'Enter a valid price';
+            if (modalActualMintButton) modalActualMintButton.disabled = true;
+        }
+        return;
+    }
+    
+    // Handle normal pricing mode
     const pricelist = projectPricelists[project.projectName];
     const quantity = parseInt(mintQuantitySlider.value);
 
@@ -153,7 +183,6 @@ function updateModalPriceDisplay() {
     if (!effectivePriceEntry && sortedPricelist.length > 0 && quantity > sortedPricelist[sortedPricelist.length -1].countNft) {
          effectivePriceEntry = sortedPricelist[sortedPricelist.length -1];
     }
-
 
     if (effectivePriceEntry) {
         const directPriceEntry = sortedPricelist.find(p => p.countNft === quantity);
@@ -182,6 +211,53 @@ function showMintModal(projectIndex) {
     }
 
     modalProjectTitle.textContent = project.name;
+    
+    if (expiryCountdownInterval) {
+        clearInterval(expiryCountdownInterval);
+        expiryCountdownInterval = null;
+    }
+
+    const paymentInfoEl = document.getElementById('modal-payment-info');
+    if (paymentInfoEl) {
+        paymentInfoEl.innerHTML = '';
+        paymentInfoEl.style.display = 'none';
+    }
+    
+    // Handle custom pricing mode
+    if (project.custom_pricing) {
+        quantitySliderContainer.style.display = 'none';
+        customPriceContainer.style.display = 'flex';
+        
+        const minimumPrice = project.minimumCustomPrice || 0;
+        customPriceInput.min = minimumPrice;
+        customPriceInput.placeholder = minimumPrice > 0 ? `Min: ${minimumPrice}` : '0.00';
+        
+        if (customPriceHelp) {
+            if (minimumPrice > 0) {
+                customPriceHelp.textContent = `Minimum price: ${minimumPrice} ADA`;
+                customPriceHelp.style.display = 'block';
+            } else {
+                customPriceHelp.style.display = 'none';
+            }
+        }
+        
+        customPriceInput.value = '';
+        
+        mintQuantitySlider.value = 1;
+        if (mintQuantityValueDisplay) mintQuantityValueDisplay.textContent = '1';
+        
+        if (modalActualMintButton) modalActualMintButton.disabled = true;
+        updateModalPriceDisplay();
+        mintModal.style.display = 'block';
+        
+        setTimeout(() => customPriceInput.focus(), 100);
+        return;
+    }
+    
+    // Handle normal pricing mode
+    quantitySliderContainer.style.display = 'flex';
+    customPriceContainer.style.display = 'none';
+    
     const pricelist = projectPricelists[project.projectName];
 
     if (!pricelist || pricelist.length === 0) {
@@ -212,6 +288,24 @@ function showMintModal(projectIndex) {
 function closeMintModal() {
     mintModal.style.display = 'none';
     mintQuantitySlider.value = 1;
+    if (customPriceInput) customPriceInput.value = '';
+    if (customPriceHelp) customPriceHelp.style.display = 'none';
+    
+    if (expiryCountdownInterval) {
+        clearInterval(expiryCountdownInterval);
+        expiryCountdownInterval = null;
+    }
+
+    const paymentInfoEl = document.getElementById('modal-payment-info');
+    if (paymentInfoEl) {
+        paymentInfoEl.innerHTML = ''; 
+        paymentInfoEl.style.display = 'none'; 
+    }
+    
+    if (modalActualMintButton && modalActualMintButton.textContent === 'Awaiting Payment') {
+        modalActualMintButton.textContent = 'Mint Now';
+        modalActualMintButton.disabled = false;
+    }
 }
 
 // Handle minting
@@ -222,7 +316,6 @@ async function handleMint() {
         return;
     }
     
-    const quantity = parseInt(mintQuantitySlider.value);
     const project = config.projects[activeProjectIndex]; 
     
     if (!project) {
@@ -231,29 +324,61 @@ async function handleMint() {
         return;
     }
 
-    const pricelist = projectPricelists[project.projectName];
-    const isValidQuantity = pricelist && pricelist.some(p => p.countNft === quantity);
+    let quantity, customPriceValue;
+    const isCustomPricingProject = project.custom_pricing;
+    
+    if (isCustomPricingProject) {
+        quantity = 1; 
+        customPriceValue = parseFloat(customPriceInput.value);
+        const minimumPrice = project.minimumCustomPrice || 0;
+        
+        if (customPriceInput.value.trim() === '' || isNaN(customPriceValue) || customPriceValue <= 0) {
+            alert("Please enter a valid price greater than 0.");
+            customPriceInput.focus();
+            return;
+        }
+        
+        if (customPriceValue < minimumPrice) {
+            alert(`Price must be at least ${minimumPrice} ADA.`);
+            customPriceInput.focus();
+            return;
+        }
+    } else {
+        // Handle normal pricing validation
+        quantity = parseInt(mintQuantitySlider.value);
+        const pricelist = projectPricelists[project.projectName];
+        const isValidQuantity = pricelist && pricelist.some(p => p.countNft === quantity);
 
-    if (!isValidQuantity) {
-        alert(`The selected quantity (${quantity}) is not a valid minting tier for this project. Please adjust the slider.`);
-        return;
+        if (!isValidQuantity) {
+            alert(`The selected quantity (${quantity}) is not a valid minting tier for this project. Please adjust the slider.`);
+            return;
+        }
     }
     
     if (!modalActualMintButton) {
         console.error("Mint button in modal not found.");
         return;
     }
-    const originalButtonText = modalActualMintButton.textContent;
+    const originalButtonText = modalActualMintButton.dataset.originalText || 'Mint Now'; 
+    modalActualMintButton.dataset.originalText = originalButtonText; 
+    
+    const paymentInfoEl = document.getElementById('modal-payment-info');
+    if (paymentInfoEl) paymentInfoEl.innerHTML = '';
 
     try {
         modalActualMintButton.disabled = true;
         modalActualMintButton.textContent = 'Processing...';
 
-        // Fetch /v2/GetNmkrPayLink from backend
+        const requestBody = { quantity };
+        if (isCustomPricingProject) {
+            requestBody.customPrice = customPriceValue;
+            requestBody.isCustomPricing = true;
+        }
+
         const apiResponse = await fetch(`/api/mint/${project.projectName}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ quantity: quantity })
+            body: JSON.stringify(requestBody)
         });
 
         let responseData;
@@ -263,33 +388,83 @@ async function handleMint() {
             console.error('Failed to parse JSON from API response:', jsonError);
             const errorText = await apiResponse.text();
             console.error('API response text:', errorText);
-            if (!apiResponse.ok) {
-                 throw new Error(apiResponse.statusText || `Request failed with status: ${apiResponse.status}. Response: ${errorText}`);
-            }
-            throw new Error(`Received an invalid JSON response from the server. Response: ${errorText}`);
+            throw new Error(`Received an invalid JSON response. Server said: ${errorText || apiResponse.statusText}`);
         }
 
         if (!apiResponse.ok) {
             throw new Error(responseData.details || responseData.error || `Minting request failed (status: ${apiResponse.status})`);
         }
 
-        if (responseData.nmkrPayUrl) {
+        if (isCustomPricingProject && responseData.paymentAddress && responseData.adaForDisplay) {
+            if (paymentInfoEl) {
+                const iconOnlyDefault = `
+                    <svg class="custom-copy-icon" viewBox="0 0 24 24" aria-hidden="true" role="img" width="20" height="20">
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"></path>
+                    </svg>
+                `;
+                const iconOnlyCopied = `
+                    <svg class="custom-copy-icon" viewBox="0 0 24 24" aria-hidden="true" role="img" width="20" height="20">
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M9 16.2l-3.5-3.5 1.41-1.41L9 13.38l7.09-7.09 1.41 1.41z" fill="currentColor"></path>
+                    </svg>
+                `;
+                paymentInfoEl.innerHTML = `
+                    <p>Please send exactly <strong>${responseData.adaForDisplay} ADA</strong> to the following address:</p>
+                    <div class="payment-address-container">
+                        <span class="payment-address-display" id="payment-address-value">${responseData.paymentAddress}</span>
+                        <button id="copy-address-button" class="copy-button" aria-label="Copy address" type="button">${iconOnlyDefault}</button>
+                    </div>
+                    <p class="payment-expiry-display" id="modal-expiry-countdown">Expires: Calculating...</p> 
+                `;
+                paymentInfoEl.style.display = 'block'; 
+
+                const copyButton = document.getElementById('copy-address-button');
+                if (copyButton) {
+                    copyButton.innerHTML = iconOnlyDefault;
+                    copyButton.addEventListener('click', () => {
+                        const addressToCopy = document.getElementById('payment-address-value')?.textContent;
+                        if (addressToCopy) {
+                            navigator.clipboard.writeText(addressToCopy).then(() => {
+                                copyButton.innerHTML = iconOnlyCopied;
+                                copyButton.disabled = true;
+                                setTimeout(() => {
+                                    copyButton.innerHTML = iconOnlyDefault;
+                                    copyButton.disabled = false;
+                                }, 2000);
+                            }).catch(err => {
+                                console.error('Failed to copy address: ', err);
+                                alert('Failed to copy address. Please try selecting it manually.');
+                            });
+                        }
+                    });
+                }
+
+                const expiryDisplayElement = document.getElementById('modal-expiry-countdown');
+                if (expiryDisplayElement && responseData.expires) {
+                    startExpiryCountdown(new Date(responseData.expires).getTime(), expiryDisplayElement);
+                }
+            }
+            modalActualMintButton.textContent = 'Awaiting Payment';
+        } else if (!isCustomPricingProject && responseData.nmkrPayUrl) {
             window.open(responseData.nmkrPayUrl, '_blank');
             setTimeout(() => {
                 if (mintModal.style.display === 'block' && modalActualMintButton) {
                     modalActualMintButton.disabled = false;
-                    modalActualMintButton.textContent = originalButtonText;
+                    modalActualMintButton.textContent = originalButtonText; 
                 }
-            }, 3000);
+            }, 3000); 
         } else {
-            console.error('NMKR Pay URL not found in response:', responseData);
-            alert('Could not retrieve the payment URL. Please try again.');
-            modalActualMintButton.disabled = false; 
-            modalActualMintButton.textContent = originalButtonText;
+            console.error('Unexpected response structure for minting:', responseData);
+            throw new Error('Could not process the minting request due to an unexpected server response.');
         }
         
     } catch (error) {
         console.error('Minting error:', error);
+        if (paymentInfoEl) {
+            paymentInfoEl.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            paymentInfoEl.style.display = 'block';
+        }
         alert('Failed to mint: ' + error.message);
         if (modalActualMintButton) { 
             modalActualMintButton.disabled = false; 
@@ -343,10 +518,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Mint button in modal
-    // const modalActualMintButton = mintModal.querySelector('.mint-button'); // Defined globally
     if (modalActualMintButton) {
         modalActualMintButton.addEventListener('click', handleMint);
+         // Store original text on load if not already set by a previous mint attempt
+        if (!modalActualMintButton.dataset.originalText) {
+            modalActualMintButton.dataset.originalText = modalActualMintButton.textContent;
+        }
     } else {
         console.error('Could not find mint button in modal to attach event listener.');
     }
@@ -360,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         mintQuantitySlider.addEventListener('change', () => { 
             const project = config.projects[activeProjectIndex];
-            if (!project) return;
+            if (!project || project.custom_pricing) return; // Slider not used for custom pricing adjustments here
             const pricelist = projectPricelists[project.projectName];
             if (!pricelist || pricelist.length === 0) return;
 
@@ -370,6 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let snappedValue = currentValue;
             let foundExactOrGreater = false;
 
+            // Snap to available pricelist quantities
             for (const entry of sortedPricelist) {
                 if (entry.countNft >= currentValue) {
                     snappedValue = entry.countNft;
@@ -378,14 +556,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // If current value is greater than all available counts, snap to the largest
             if (!foundExactOrGreater && sortedPricelist.length > 0) {
-                snappedValue = sortedPricelist[sortedPricelist.length - 1].countNft;
+                snappedValue = sortedPricelist[sortedPricelist.length - 1].countNft; // Snap to largest if above all
+            } else if (sortedPricelist.length > 0 && currentValue < sortedPricelist[0].countNft) {
+                 snappedValue = sortedPricelist[0].countNft; // Snap to smallest if below all
             }
-            else if (currentValue < sortedPricelist[0].countNft) {
-                 snappedValue = sortedPricelist[0].countNft;
-            }
-
 
             mintQuantitySlider.value = snappedValue;
             mintQuantityValueDisplay.textContent = snappedValue;
@@ -395,7 +570,29 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Mint quantity slider or value display element not found.");
     }
 
-    // Hamburger Menu Toggle
+    if (customPriceInput) {
+        customPriceInput.addEventListener('input', () => {
+            updateModalPriceDisplay();
+        });
+
+        customPriceInput.addEventListener('blur', () => {
+            const trimmedValue = customPriceInput.value.trim();
+            if (trimmedValue === '') {
+                customPriceInput.value = '';
+            } else {
+                const value = parseFloat(trimmedValue);
+                if (!isNaN(value)) {
+                    customPriceInput.value = value.toFixed(2);
+                } else {
+                    customPriceInput.value = '';
+                }
+            }
+            updateModalPriceDisplay();
+        });
+    } else {
+        console.error("Custom price input element not found.");
+    }
+
     if (hamburgerButton && navLinksMenu) {
         hamburgerButton.addEventListener('click', () => {
             navLinksMenu.classList.toggle('active');
@@ -527,16 +724,27 @@ function createProjectCard(project, index) {
     card.className = 'project-card';
     card.setAttribute('data-project-name', project.projectName); 
     
+    const pricingSection = project.custom_pricing ? 
+        '' : 
+        `<div class="project-stats project-stats-pricing"> 
+             <div class="project-stat">
+                <span class="project-price">Loading...</span>
+            </div>
+        </div>`;
+    
+    const customPricingDisclaimer = project.custom_pricing ?
+        `<div class="custom-pricing-disclaimer">
+            <i class="fas fa-info-circle"></i>
+            <span>This project allows you to specify a custom ADA amount when minting</span>
+        </div>` :
+        '';
+    
     card.innerHTML = `
         <img src="${project.image}" alt="${project.name}" class="project-image">
         <div class="project-info">
             <h3 class="project-title">${project.name}</h3>
             <p class="project-description">${project.description}</p>
-            <div class="project-stats project-stats-pricing"> 
-                 <div class="project-stat">
-                    <span class="project-price">Loading...</span>
-                </div>
-            </div>
+            ${pricingSection}
             <div class="project-stats project-stats-supply"> 
                 <div class="project-stat">
                     <span>Total Supply:</span> Loading...
@@ -545,14 +753,21 @@ function createProjectCard(project, index) {
                     <span>Available:</span> Loading...
                 </div>
             </div>
-            <button class="mint-button" data-project-index="${index}" disabled>Mint Now</button> 
+            <button class="mint-button" data-project-index="${index}" disabled>Mint Now</button>
+            ${customPricingDisclaimer}
         </div>
     `;
-    fetchAndDisplayProjectPricelist(project, card, index); 
+    
+    if (!project.custom_pricing) {
+        fetchAndDisplayProjectPricelist(project, card, index);
+    } else {
+        const mintButtonOnCard = card.querySelector('.mint-button');
+        if (mintButtonOnCard) mintButtonOnCard.disabled = false;
+    }
+    
     return card;
 }
 
-// Update the loadProjects function to refresh counts periodically
 function loadProjects() {
     if (!projectsGrid) {
         console.error("Projects grid not found for loadProjects.");
@@ -568,7 +783,6 @@ function loadProjects() {
     });
 }
 
-// Function to move theme toggle based on screen size
 function updateThemeToggleLocation() {
     if (!themeSwitchContainer || !navLinksMenu || !navRightGroupDesktop) {
         console.error('Required elements for theme toggle relocation not found.');
@@ -582,34 +796,71 @@ function updateThemeToggleLocation() {
     } else {
         if (themeSwitchContainer.parentNode !== navRightGroupDesktop) {
             navRightGroupDesktop.appendChild(themeSwitchContainer); 
-        } else {
-            navRightGroupDesktop.appendChild(themeSwitchContainer); 
-        }
+        } 
     }
 }
 
-// Apply typography settings from config
 function applyTypographySettings() {
     const root = document.documentElement;
     const typography = config.site.typography;
 
-    // Apply font sizes
-    Object.entries(typography.sizes).forEach(([key, value]) => {
-        root.style.setProperty(`--font-size-${key}`, value);
-    });
+    if (typography && typography.sizes) {
+        Object.entries(typography.sizes).forEach(([key, value]) => {
+            root.style.setProperty(`--font-size-${key}`, value);
+        });
+    }
 
-    // Apply font weights
-    Object.entries(typography.weights).forEach(([key, value]) => {
-        root.style.setProperty(`--font-weight-${key}`, value);
-    });
+    if (typography && typography.weights) {
+        Object.entries(typography.weights).forEach(([key, value]) => {
+            root.style.setProperty(`--font-weight-${key}`, value);
+        });
+    }
 
-    // Apply line heights
-    Object.entries(typography.lineHeights).forEach(([key, value]) => {
-        root.style.setProperty(`--line-height-${key}`, value);
-    });
+    if (typography && typography.lineHeights) {
+        Object.entries(typography.lineHeights).forEach(([key, value]) => {
+            root.style.setProperty(`--line-height-${key}`, value);
+        });
+    }
 
-    // Apply letter spacing
-    Object.entries(typography.letterSpacing).forEach(([key, value]) => {
-        root.style.setProperty(`--letter-spacing-${key}`, value);
-    });
-} 
+    if (typography && typography.letterSpacing) {
+        Object.entries(typography.letterSpacing).forEach(([key, value]) => {
+            root.style.setProperty(`--letter-spacing-${key}`, value);
+        });
+    }
+}
+
+function startExpiryCountdown(expiryTime, displayElement) {
+    if (expiryCountdownInterval) {
+        clearInterval(expiryCountdownInterval);
+    }
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const timeLeft = expiryTime - now;
+
+        if (timeLeft <= 0) {
+            clearInterval(expiryCountdownInterval);
+            expiryCountdownInterval = null;
+            displayElement.textContent = "Expired";
+            if(modalActualMintButton && modalActualMintButton.textContent === 'Awaiting Payment'){
+            }
+            return;
+        }
+
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+        let countdownString = "Expires in: ";
+        if (days > 0) countdownString += `${days}d `;
+        if (hours > 0 || days > 0) countdownString += `${hours}h `;
+        if (minutes > 0 || hours > 0 || days > 0) countdownString += `${minutes}m `;
+        countdownString += `${seconds}s`;
+
+        displayElement.textContent = countdownString;
+    }
+
+    updateCountdown(); 
+    expiryCountdownInterval = setInterval(updateCountdown, 1000); 
+}

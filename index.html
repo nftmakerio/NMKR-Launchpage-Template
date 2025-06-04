@@ -85,11 +85,19 @@
             <div class="mint-container">
                 <h2 id="modal-project-title">Project Title</h2>
                 <div class="mint-controls">
-                    <div class="quantity-slider-container">
+                    <div class="quantity-slider-container" id="quantity-slider-container">
                         <input type="range" id="mint-quantity-slider" min="1" max="10" value="1">
                         <span id="mint-quantity-value" class="quantity-value-display">1</span>
                     </div>
+                    <div class="custom-price-container" id="custom-price-container" style="display: none;">
+                        <label for="custom-price-input" class="custom-price-label">Enter your price (ADA):</label>
+                        <input type="number" id="custom-price-input" class="custom-price-input" placeholder="0.00" min="0" step="0.01">
+                        <p id="custom-price-help" class="custom-price-help" style="display: none;"></p>
+                    </div>
                     <button class="mint-button">Mint Now</button>
+                </div>
+                <div id="modal-payment-info" class="modal-payment-info" style="margin-top: 1rem;">
+                    <!-- Payment address and amount will be displayed here -->
                 </div>
                 <p class="mint-price">Price</p>
             </div>
