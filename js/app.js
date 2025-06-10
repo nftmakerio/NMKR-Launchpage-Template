@@ -21,7 +21,154 @@ const customPriceHelp = document.getElementById('custom-price-help');
 
 let activeProjectIndex = null; 
 let projectPricelists = {}; 
-let expiryCountdownInterval = null; 
+let expiryCountdownInterval = null;
+
+// Subpage routing variables
+let currentPage = 'main'; 
+let currentProjects = []; 
+let currentDescription = null;
+let currentBanner = null; 
+
+// URL Routing Functions
+function getCurrentPageFromURL() {
+    const path = window.location.pathname;
+    if (path === '/' || path === '/index.html') {
+        return 'main';
+    }
+    return path.substring(1);
+}
+
+function getSubpageConfig(pageUrl) {
+    if (!config.subpages || !config.subpages.enabled) {
+        return null;
+    }
+    return config.subpages.pages.find(page => page.url === pageUrl && page.enabled);
+}
+
+function navigateToPage(pageUrl) {
+    if (pageUrl === 'main') {
+        history.pushState(null, '', '/');
+    } else {
+        history.pushState(null, '', `/${pageUrl}`);
+    }
+    loadCurrentPage();
+}
+
+function loadCurrentPage() {
+    const pageUrl = getCurrentPageFromURL();
+    currentPage = pageUrl;
+    
+    if (pageUrl === 'main') {
+        currentProjects = config.projects;
+        currentDescription = {
+            title: config.site.about.title,
+            content: config.site.about.content
+        };
+        currentBanner = null; 
+    } else {
+        const subpageConfig = getSubpageConfig(pageUrl);
+        if (subpageConfig) {
+            currentProjects = subpageConfig.projects;
+            currentDescription = subpageConfig.description;
+            currentBanner = subpageConfig.banner || null; 
+        } else {
+            navigateToPage('main');
+            return;
+        }
+    }
+    
+    updatePageContent();
+    updateNavbar();
+    loadProjects();
+}
+
+function updatePageContent() {
+    const aboutTitle = document.getElementById('about-title');
+    const aboutContent = document.getElementById('aboutContent');
+    
+    if (aboutTitle && currentDescription) {
+        aboutTitle.textContent = currentDescription.title;
+    }
+    if (aboutContent && currentDescription) {
+        aboutContent.innerHTML = currentDescription.content;
+    }
+    
+    updateBannerContent();
+}
+
+function updateBannerContent() {
+    const bannerConfig = currentBanner || config.site.banner;
+    
+    const bannerImage = document.getElementById('banner-image');
+    if (bannerImage && bannerConfig) {
+        bannerImage.src = bannerConfig.image;
+        if (bannerConfig.mobileImage) {
+            document.documentElement.style.setProperty('--mobile-banner-image', `url(${bannerConfig.mobileImage})`);
+        }
+    }
+    
+    if (bannerConfig && bannerConfig.overlay) {
+        const bannerTitle = document.getElementById('banner-title');
+        const bannerDescription = document.getElementById('banner-description');
+        const bannerCta = document.getElementById('banner-cta');
+        
+        if (bannerConfig.overlay.enabled) {
+            if (bannerTitle) bannerTitle.textContent = bannerConfig.overlay.title;
+            if (bannerDescription) bannerDescription.textContent = bannerConfig.overlay.description;
+            
+            if (bannerCta && bannerConfig.overlay.cta) {
+                if (bannerConfig.overlay.cta.enabled) {
+                    bannerCta.style.display = 'inline-block';
+                    bannerCta.textContent = bannerConfig.overlay.cta.text;
+                    bannerCta.href = bannerConfig.overlay.cta.link;
+                } else {
+                    bannerCta.style.display = 'none';
+                }
+            }
+        }
+    }
+}
+
+function updateNavbar() {
+    const navLinksMenu = document.getElementById('nav-links-menu');
+    if (!navLinksMenu) return;
+    
+    const existingLinks = navLinksMenu.querySelectorAll('a:not([data-subpage]):not([data-main])');
+    
+    navLinksMenu.querySelectorAll('a[data-subpage], a[data-main]').forEach(link => link.remove());
+    
+    const mainLink = document.createElement('a');
+    mainLink.href = '#';
+    mainLink.textContent = 'Main';
+    mainLink.setAttribute('data-main', 'true');
+    if (currentPage === 'main') {
+        mainLink.classList.add('active');
+    }
+    mainLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateToPage('main');
+    });
+    navLinksMenu.insertBefore(mainLink, existingLinks[0]);
+    
+    if (config.subpages && config.subpages.enabled && config.subpages.showInNavbar) {
+        config.subpages.pages.forEach(page => {
+            if (page.enabled) {
+                const link = document.createElement('a');
+                link.href = '#';
+                link.textContent = page.name;
+                link.setAttribute('data-subpage', page.url);
+                if (currentPage === page.url) {
+                    link.classList.add('active');
+                }
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateToPage(page.url);
+                });
+                navLinksMenu.appendChild(link);
+            }
+        });
+    }
+}
 
 // Initialize theme
 function initTheme() {
@@ -124,6 +271,19 @@ function setSiteConfiguration() {
     if (config.site.fonts) {
         root.style.setProperty('--primary-font', config.site.fonts.primary);
     }
+    
+    // Handle navigation link visibility
+    if (config.site.navigation) {
+        const aboutLink = document.querySelector('a[href="#about"]');
+        const exploreLink = document.querySelector('a[href="#explore"]');
+        
+        if (aboutLink) {
+            aboutLink.style.display = config.site.navigation.showAboutLink ? '' : 'none';
+        }
+        if (exploreLink) {
+            exploreLink.style.display = config.site.navigation.showExploreLink ? '' : 'none';
+        }
+    }
 }
 
 // Create project cards
@@ -133,13 +293,13 @@ function createProjectCards() {
 
 // Helper function to update the price display in the modal
 function updateModalPriceDisplay() {
-    if (activeProjectIndex === null || activeProjectIndex === undefined || !config.projects[activeProjectIndex] || !modalMintPrice) {
+    if (activeProjectIndex === null || activeProjectIndex === undefined || !currentProjects[activeProjectIndex] || !modalMintPrice) {
         if (modalMintPrice) modalMintPrice.textContent = 'N/A';
         if (modalActualMintButton) modalActualMintButton.disabled = true;
         return;
     }
     
-    const project = config.projects[activeProjectIndex];
+    const project = currentProjects[activeProjectIndex];
     
     // Handle custom pricing mode
     if (project.custom_pricing) {
@@ -202,7 +362,7 @@ function updateModalPriceDisplay() {
 // Show mint modal
 function showMintModal(projectIndex) { 
     activeProjectIndex = projectIndex;
-    const project = config.projects[projectIndex];
+    const project = currentProjects[projectIndex];
 
     if (!project) {
         console.error("Project not found for showMintModal, Index:", projectIndex);
@@ -316,7 +476,7 @@ async function handleMint() {
         return;
     }
     
-    const project = config.projects[activeProjectIndex]; 
+    const project = currentProjects[activeProjectIndex]; 
     
     if (!project) {
         console.error(`Project not found for activeProject index: ${activeProjectIndex}`);
@@ -482,9 +642,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     initTheme();
     setSiteConfiguration();
-    loadProjects(); 
+    // Initialize routing and load current page
+    loadCurrentPage();
     updateThemeToggleLocation();
     window.addEventListener('resize', updateThemeToggleLocation);
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', () => {
+        loadCurrentPage();
+    });
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -536,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         mintQuantitySlider.addEventListener('change', () => { 
-            const project = config.projects[activeProjectIndex];
+            const project = currentProjects[activeProjectIndex];
             if (!project || project.custom_pricing) return; // Slider not used for custom pricing adjustments here
             const pricelist = projectPricelists[project.projectName];
             if (!pricelist || pricelist.length === 0) return;
@@ -776,7 +942,7 @@ function loadProjects() {
     projectsGrid.innerHTML = '';
     projectPricelists = {}; 
     
-    config.projects.forEach((project, index) => {
+    currentProjects.forEach((project, index) => {
         const card = createProjectCard(project, index);
         projectsGrid.appendChild(card);
         updateProjectCounts(project.projectName); 

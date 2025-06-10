@@ -89,8 +89,8 @@ const config = {
                 title: 'Your Featured Collection', //change the title here
                 description: 'Discover our latest and most exclusive NFT collection', //change the description here
                 cta: {
-                    enabled: true, //change to false to remove the button
-                    text: 'CTA button', //change the button text here
+                    enabled: true, //change to false to remove the explore button
+                    text: 'CTA button', //change the button text here (default links to #explore section)
                     link: '#explore' // change the link here or remove the button
                 }
             }
@@ -101,6 +101,10 @@ const config = {
                 <p>Welcome to our NFT projects! Here's where you can tell your story and explain what makes your projects unique.</p>
                 <p>Add multiple paragraphs to describe your projects' vision, goals, and unique features.</p>
             `
+        },
+        navigation: {
+            showAboutLink: true, // Set to false to hide "About" link in navbar
+            showExploreLink: true // Set to false to hide "Explore" link in navbar
         }
     },
 
@@ -111,14 +115,14 @@ const config = {
         {
             name: 'Project 1', //change the project name here
             description: 'A unique collection of digital art pieces', //change the description here
-            image: 'https://placehold.co/400x400/1E1E1E/11f250', //change the image here, recommended size: 400x400
+            image: 'https://placehold.co/400x200/1E1E1E/11f250',
             projectName: 'project1', //change the project name here, must match in the env file (For projectName: 'project1' the env must contain: NMKR_PROJECT_UID_PROJECT1=your_project_UID )
             custom_pricing: false // Set to true to enable custom pricing mode (hides price display on card, allows custom price input in mint modal)
         },
         {
             name: 'Project 2',
             description: 'Exclusive NFT collection with special utilities',
-            image: 'https://placehold.co/400x400/1E1E1E/11f250',
+            image: 'https://placehold.co/400x200/1E1E1E/11f250',
             projectName: 'project2',
             custom_pricing: true, // Example: This project uses custom pricing
             minimumCustomPrice: 6.5 // Minimum price for custom pricing (in ADA). Only applies when custom_pricing is true
@@ -127,11 +131,135 @@ const config = {
         {
             name: 'Project 3',
             description: 'Limited edition collectibles with rare attributes',
-            image: 'https://placehold.co/400x400/1E1E1E/11f250',
+            image: 'https://placehold.co/400x200/1E1E1E/11f250',
             projectName: 'project3',
             custom_pricing: false
         }
     ],
+
+    // Subpages Configuration
+    subpages: {
+        enabled: true, // Master switch for subpages feature
+        showInNavbar: true, // Show subpage links in navbar
+        pages: [
+            {
+                name: 'Subpage 1', // Display name in navbar
+                url: 'subpage1', // Creates /subpage1 URL
+                enabled: true,
+                banner: {
+                    image: 'https://placehold.co/1200x400/000000/11f250?text=Subpage+1+Banner', // Custom banner for this subpage
+                    mobileImage: 'https://placehold.co/800x600/000000/11f250?text=Subpage+1+Mobile', // Mobile version
+                    overlay: {
+                        enabled: true,
+                        title: 'Subpage 1 Featured Content',
+                        description: 'Discover exclusive content available only on subpage 1',
+                        cta: {
+                            enabled: true,
+                            text: 'View Projects',
+                            link: '#explore'
+                        }
+                    }
+                },
+                description: {
+                    title: 'Subpage 1 Title',
+                    content: `
+                        <p>This is the description content for subpage 1.</p>
+                        <p>Add your own content here to describe this section of your project.</p>
+                        <p>You can use HTML formatting in this content area.</p>
+                    `
+                },
+                projects: [
+                    {
+                        name: 'Project A',
+                        description: 'Description for project A',
+                        image: 'https://placehold.co/400x200/1E1E1E/11f250',
+                        projectName: 'project_a', // Needs NMKR_PROJECT_UID_PROJECT_A in .env
+                        custom_pricing: false
+                    },
+                    {
+                        name: 'Project B',
+                        description: 'Description for project B',
+                        image: 'https://placehold.co/400x200/1E1E1E/11f250',
+                        projectName: 'project_b', // Needs NMKR_PROJECT_UID_PROJECT_B in .env
+                        custom_pricing: false
+                    }
+                ]
+            },
+            {
+                name: 'Subpage 2',
+                url: 'subpage2',
+                enabled: true,
+                banner: {
+                    image: 'https://placehold.co/1200x400/1E1E1E/11f250?text=Subpage+2+Banner',
+                    mobileImage: 'https://placehold.co/800x600/1E1E1E/11f250?text=Subpage+2+Mobile',
+                    overlay: {
+                        enabled: true,
+                        title: 'Subpage 2 Custom Pricing',
+                        description: 'Projects with flexible pricing - pay what you think is fair',
+                        cta: {
+                            enabled: true,
+                            text: 'Explore Custom Pricing',
+                            link: '#explore'
+                        }
+                    }
+                },
+                description: {
+                    title: 'Subpage 2 Title',
+                    content: `
+                        <p>This is the description content for subpage 2.</p>
+                        <p>This subpage demonstrates custom pricing functionality.</p>
+                        <p>Users can enter their own ADA amount for these projects.</p>
+                    `
+                },
+                projects: [
+                    {
+                        name: 'Project C',
+                        description: 'Description for project C with custom pricing',
+                        image: 'https://placehold.co/400x200/1E1E1E/11f250',
+                        projectName: 'project_c', // Needs NMKR_PROJECT_UID_PROJECT_C in .env
+                        custom_pricing: true,
+                        minimumCustomPrice: 10.0
+                    }
+                ]
+            },
+            {
+                name: 'Subpage 3',
+                url: 'subpage3',
+                enabled: false, // Disabled - won't show in navbar
+                banner: {
+                    image: 'https://placehold.co/1200x400/11f250/000000?text=Subpage+3+Banner',
+                    mobileImage: 'https://placehold.co/800x600/11f250/000000?text=Subpage+3+Mobile',
+                    overlay: {
+                        enabled: true,
+                        title: 'Subpage 3 Coming Soon',
+                        description: 'Exciting new projects will be available here soon',
+                        cta: {
+                            enabled: false, // Disabled for this example
+                            text: 'Coming Soon',
+                            link: '#'
+                        }
+                    }
+                },
+                description: {
+                    title: 'Subpage 3 Title',
+                    content: `
+                        <p>This is the description content for subpage 3.</p>
+                        <p>This subpage is currently disabled and won't appear in the navigation.</p>
+                    `
+                },
+                projects: [
+                    {
+                        name: 'Project D',
+                        description: 'Description for project D',
+                        image: 'https://placehold.co/400x200/1E1E1E/11f250',
+                        projectName: 'project_d', // Needs NMKR_PROJECT_UID_PROJECT_D in .env
+                        custom_pricing: true,
+                        minimumCustomPrice: 5.0
+                    }
+                ]
+            }
+        ]
+    },
 
     // Social Links
     // Add your project's social media links

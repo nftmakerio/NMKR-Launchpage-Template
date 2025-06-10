@@ -218,6 +218,11 @@ nav {
     color: var(--primary-color);
 }
 
+.nav-links a.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 /* Hero Section */
 .hero {
     padding: 8rem 2rem 1rem;
@@ -370,6 +375,7 @@ nav {
     box-shadow: 0 4px 12px var(--shadow-color);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid var(--border-color);
+    max-width: 400px;
 }
 
 .project-card:hover {

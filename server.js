@@ -313,6 +313,16 @@ app.get('/api/pricelist/:projectName', async (req, res) => {
     }
 });
 
+// Catch-all route for client-side routing (subpages)
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    console.log(`[INFO] Serving index.html for client-side route: ${req.path}`);
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
