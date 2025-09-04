@@ -15,16 +15,18 @@ This template is designed for NFT project creators who want to:
 
 ## Features
 
-- 🎨 Clean, modern design
-- 🌓 Light/Dark theme support
-- 📱 Fully responsive
-- 🎯 Integrated server for NMKR Studio API calls
-- 🔄 Real-time minting statistics
-- 📊 Multiple minting options
-- 💰 Custom pricing support(pay-what-you-want)
-- 🎭 Customizable content sections
-- 🔗 Social media integration
-- 📦 Support for multiple NFT projects
+- Clean, modern customizeable design
+- Light/Dark theme support
+- Fully responsive
+- Integrated server for NMKR Studio API calls
+- Real-time minting statistics
+- Quantity selection
+- Custom pricing support(pay-what-you-want)
+- Customizable content sections
+- Social media integration
+- Support for multiple NFT projects with randomized sale
+- Gallery View for sale of specific NFTs
+
 
 ## Quick Start for Project Creators
 
