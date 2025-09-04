@@ -42,7 +42,18 @@ function getSubpageConfig(pageUrl) {
     if (!config.subpages || !config.subpages.enabled) {
         return null;
     }
-    return config.subpages.pages.find(page => page.url === pageUrl && page.enabled);
+
+    const contentPage = config.subpages.contentPages?.find(p => p.url === pageUrl && p.enabled);
+    if (contentPage) {
+        return { ...contentPage, type: 'content' };
+    }
+
+    const galleryPage = config.subpages.galleryPages?.find(p => p.url === pageUrl && p.enabled);
+    if (galleryPage) {
+        return { ...galleryPage, type: 'gallery' };
+    }
+
+    return null;
 }
 
 function navigateToPage(pageUrl) {
@@ -55,6 +66,7 @@ function navigateToPage(pageUrl) {
 }
 
 function loadCurrentPage() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     const pageUrl = getCurrentPageFromURL();
     currentPage = pageUrl;
     
@@ -65,21 +77,29 @@ function loadCurrentPage() {
             content: config.site.about.content
         };
         currentBanner = null; 
+        updatePageContent();
+        updateNavbar();
+        loadProjects();
     } else {
         const subpageConfig = getSubpageConfig(pageUrl);
         if (subpageConfig) {
-            currentProjects = subpageConfig.projects;
+            currentProjects = subpageConfig.projects || []; // Galleries won't have this
             currentDescription = subpageConfig.description;
             currentBanner = subpageConfig.banner || null; 
+
+            updatePageContent();
+            updateNavbar();
+
+            if (subpageConfig.type === 'gallery') {
+                loadGalleryPage(subpageConfig.projectName);
+            } else {
+                loadProjects();
+            }
         } else {
             navigateToPage('main');
             return;
         }
     }
-    
-    updatePageContent();
-    updateNavbar();
-    loadProjects();
 }
 
 function updatePageContent() {
@@ -92,16 +112,34 @@ function updatePageContent() {
     if (aboutContent && currentDescription) {
         aboutContent.innerHTML = currentDescription.content;
     }
+
+    // Hide about section if there's no title and content
+    const aboutSection = document.getElementById('about');
+    if (aboutSection) {
+        const shouldShowAbout = currentDescription && (currentDescription.title || currentDescription.content);
+        aboutSection.style.display = shouldShowAbout ? '' : 'none';
+    }
     
     updateBannerContent();
 }
 
 function updateBannerContent() {
     const bannerConfig = currentBanner || config.site.banner;
+    const bannerSection = document.querySelector('.banner');
+
+    if (!bannerSection) return;
+
+    if (!bannerConfig || bannerConfig.enabled === false) {
+        bannerSection.style.display = 'none';
+        return;
+    }
+
+    bannerSection.style.display = '';
     
     const bannerImage = document.getElementById('banner-image');
     if (bannerImage && bannerConfig) {
         bannerImage.src = bannerConfig.image;
+        bannerImage.style.opacity = '1';
         if (bannerConfig.mobileImage) {
             document.documentElement.style.setProperty('--mobile-banner-image', `url(${bannerConfig.mobileImage})`);
         }
@@ -151,7 +189,7 @@ function updateNavbar() {
     navLinksMenu.insertBefore(mainLink, existingLinks[0]);
     
     if (config.subpages && config.subpages.enabled && config.subpages.showInNavbar) {
-        config.subpages.pages.forEach(page => {
+        const createNavLink = (page) => {
             if (page.enabled) {
                 const link = document.createElement('a');
                 link.href = '#';
@@ -166,7 +204,10 @@ function updateNavbar() {
                 });
                 navLinksMenu.appendChild(link);
             }
-        });
+        };
+
+        config.subpages.contentPages?.forEach(createNavLink);
+        config.subpages.galleryPages?.forEach(createNavLink);
     }
 }
 
@@ -198,8 +239,17 @@ function setSiteConfiguration() {
     // Set site logo
     const siteLogo = document.getElementById('site-logo');
     if (siteLogo) {
-        siteLogo.src = config.site.logo;
+        const logoUrl = typeof config.site.logo === 'object' ? config.site.logo.url : config.site.logo;
+        siteLogo.src = logoUrl;
         siteLogo.alt = config.site.title;
+        
+        // Apply logo height if configured
+        if (typeof config.site.logo === 'object' && config.site.logo.height) {
+            const logoContainer = document.querySelector('.logo');
+            if (logoContainer) {
+                logoContainer.style.height = config.site.logo.height;
+            }
+        }
     }
 
     // Set favicon
@@ -218,6 +268,7 @@ function setSiteConfiguration() {
     const bannerImage = document.getElementById('banner-image');
     if (bannerImage) {
         bannerImage.src = config.site.banner.image;
+        bannerImage.style.opacity = '1';
         if (config.site.banner.mobileImage) {
             document.documentElement.style.setProperty('--mobile-banner-image', `url(${config.site.banner.mobileImage})`);
         }
@@ -266,6 +317,21 @@ function setSiteConfiguration() {
     root.style.setProperty('--primary-color', config.site.colors.accent);
     root.style.setProperty('--hover-color', config.site.colors.accentHover);
     root.style.setProperty('--accent-text-color', config.site.colors.accentText);
+    
+    // Apply theme colors from config
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    if (config.site.colors.background && config.site.colors.background[currentTheme]) {
+        root.style.setProperty('--background-color', config.site.colors.background[currentTheme]);
+    }
+    if (config.site.colors.text && config.site.colors.text[currentTheme]) {
+        root.style.setProperty('--text-color', config.site.colors.text[currentTheme]);
+    }
+    if (config.site.colors.card && config.site.colors.card[currentTheme]) {
+        root.style.setProperty('--card-background', config.site.colors.card[currentTheme]);
+    }
+    if (config.site.colors.border && config.site.colors.border[currentTheme]) {
+        root.style.setProperty('--border-color', config.site.colors.border[currentTheme]);
+    }
     
     // Apply font configuration
     if (config.site.fonts) {
@@ -779,6 +845,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     applyTypographySettings();
+
+    // Event listener for gallery buy buttons
+    projectsGrid.addEventListener('click', (e) => {
+        if (e.target.matches('.buy-now-button')) {
+            const paymentLink = e.target.dataset.paymentLink;
+            if (paymentLink) {
+                window.open(paymentLink, '_blank');
+            }
+        }
+    });
 });
 
 async function updateProjectCounts(projectName) {
@@ -948,6 +1024,67 @@ function loadProjects() {
         updateProjectCounts(project.projectName); 
     });
 }
+
+// Functions for NFT Gallery
+async function loadGalleryPage(projectName) {
+    if (!projectsGrid) {
+        console.error("Gallery grid not found.");
+        return;
+    }
+    projectsGrid.innerHTML = '<p class="loading-message">Loading gallery...</p>';
+    projectsGrid.classList.add('gallery-grid'); // Add class for gallery styling
+
+    try {
+        const response = await fetch(`/api/nfts/${projectName}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch NFTs');
+        }
+        const nfts = await response.json();
+
+        projectsGrid.innerHTML = ''; // Clear loading message
+        if (nfts.length === 0) {
+            projectsGrid.innerHTML = '<p>No NFTs found in this collection.</p>';
+            return;
+        }
+
+        nfts.forEach(nft => {
+            const nftCard = createNftCard(nft);
+            projectsGrid.appendChild(nftCard);
+        });
+
+    } catch (error) {
+        console.error('Error loading gallery:', error);
+        projectsGrid.innerHTML = '<p class="error-message">Could not load gallery. Please try again later.</p>';
+    }
+}
+
+function createNftCard(nft) {
+    const card = document.createElement('div');
+    const isSold = nft.state !== 'free';
+    card.className = `nft-card ${isSold ? 'sold' : ''}`;
+
+    const priceInAda = nft.price / 1000000;
+    const price = priceInAda > 0 ? `${priceInAda.toFixed(2)} ₳` : 'Price N/A';
+
+    card.innerHTML = `
+        <div class="nft-image-container">
+            <img src="${nft.gatewayLink}" alt="${nft.displayname}" class="nft-image" loading="lazy">
+        </div>
+        <div class="nft-info">
+            <h3 class="nft-title">${nft.displayname}</h3>
+            <p class="nft-price ${isSold ? 'sold' : ''}">${price}</p>
+        </div>
+        <div class="nft-card-overlay">
+            <button class="buy-now-button" 
+                    data-payment-link="${nft.paymentGatewayLinkForSpecificSale}" 
+                    ${isSold ? 'disabled' : ''}>
+                ${isSold ? 'Sold' : 'Buy Now'}
+            </button>
+        </div>
+    `;
+    return card;
+}
+
 
 function updateThemeToggleLocation() {
     if (!themeSwitchContainer || !navLinksMenu || !navRightGroupDesktop) {

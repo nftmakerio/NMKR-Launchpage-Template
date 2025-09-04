@@ -12,17 +12,23 @@
     <link rel="stylesheet" href="css/style.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Prevent FOUC by initializing theme immediately -->
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 </head>
 <body>
     <header>
         <nav>
             <div class="logo">
-                <img id="site-logo" src="https://placehold.co/200x80/11f250/000000?text=LOGO" alt="Logo">
+                <img id="site-logo" src="https://placehold.co/140x70/1E1E1E/11f250?text=Your_logo" alt="Logo">
             </div>
             <div class="nav-right-group" id="nav-right-group-desktop">
                 <div class="nav-links" id="nav-links-menu">
-                    <a href="#about">About</a>
                     <a href="#explore">Explore</a>
+                    <a href="#about">About</a>
                 </div>
                 <div class="theme-switch" id="theme-switch-container">
                     <input type="checkbox" id="theme-toggle">
@@ -46,7 +52,7 @@
 
         <section class="banner">
             <div class="banner-content">
-                <img id="banner-image" src="https://placehold.co/1200x400/11f250/000000?text=Banner" alt="Featured Collection Banner" class="banner-image">
+                <img id="banner-image" src="" alt="Featured Collection Banner" class="banner-image" style="opacity: 0;">
                 <div class="banner-overlay">
                     <h2 id="banner-title">Featured Collection</h2>
                     <p id="banner-description">Discover our latest and most exclusive NFT collection</p>

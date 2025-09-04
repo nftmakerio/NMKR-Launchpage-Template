@@ -13,7 +13,10 @@ const config = {
     site: {
         title: 'Brand Title', // Change the title of your brand
         subtitle: 'This is your subtitle', // Change the subtitle of your brand
-        logo: 'https://placehold.co/200x80/1E1E1E/11f250?text=Your_logo',
+        logo: {
+            url: 'https://placehold.co/140x70/1E1E1E/11f250?text=Your_logo',
+            height: '40px' // Change logo height here (max. '60px' for larger logos)
+        },
         favicon: 'https://placehold.co/32x32/1E1E1E/11f250?text=NMKR', // Add your favicon URL here, recommended size: 32x32
         defaultTheme: 'dark', // Change default theme setting: 'light' or 'dark'
         fonts: {
@@ -82,6 +85,7 @@ const config = {
             }
         },
         banner: {
+            enabled: true, // Set to false to hide the main page banner
             image: 'https://placehold.co/1200x400/1E1E1E/11f250?text=1200x400', // Change the banner image here, recommended size: 1200x400
             mobileImage: 'https://placehold.co/800x600/1E1E1E/11f250?text=800x600', // Matching mobile version, recommended size: 800x600
             overlay: {
@@ -141,12 +145,15 @@ const config = {
     subpages: {
         enabled: true, // Master switch for subpages feature
         showInNavbar: true, // Show subpage links in navbar
-        pages: [
+        
+        // Content-based subpages with one or more project cards
+        contentPages: [
             {
                 name: 'Subpage 1', // Display name in navbar
                 url: 'subpage1', // Creates /subpage1 URL
                 enabled: true,
                 banner: {
+                    enabled: true, // Set to false to hide this subpage's banner
                     image: 'https://placehold.co/1200x400/000000/11f250?text=Subpage+1+Banner', // Custom banner for this subpage
                     mobileImage: 'https://placehold.co/800x600/000000/11f250?text=Subpage+1+Mobile', // Mobile version
                     overlay: {
@@ -190,6 +197,7 @@ const config = {
                 url: 'subpage2',
                 enabled: true,
                 banner: {
+                    enabled: true, // Set to false to hide this subpage's banner
                     image: 'https://placehold.co/1200x400/1E1E1E/11f250?text=Subpage+2+Banner',
                     mobileImage: 'https://placehold.co/800x600/1E1E1E/11f250?text=Subpage+2+Mobile',
                     overlay: {
@@ -227,6 +235,7 @@ const config = {
                 url: 'subpage3',
                 enabled: false, // Disabled - won't show in navbar
                 banner: {
+                    enabled: false, // Set to false to hide this subpage's banner
                     image: 'https://placehold.co/1200x400/11f250/000000?text=Subpage+3+Banner',
                     mobileImage: 'https://placehold.co/800x600/11f250/000000?text=Subpage+3+Mobile',
                     overlay: {
@@ -257,6 +266,61 @@ const config = {
                         minimumCustomPrice: 5.0
                     }
                 ]
+            }
+        ],
+
+        // Gallery subpages for displaying all NFTs from a single project for specific sales.
+        galleryPages: [
+            {
+                name: 'Gallery 1',
+                url: 'gallery1',
+                enabled: true,
+                projectName: 'gallery_1', // Connects to NMKR_PROJECT_UID_GALLERY_1 in .env
+                banner: {
+                    enabled: true, // Set to false to hide this gallery's banner
+                    image: 'https://placehold.co/1200x400/1E1E1E/11f250?text=Gallery+1+Banner',
+                    mobileImage: 'https://placehold.co/800x600/1E1E1E/11f250?text=Gallery+1+Mobile',
+                    overlay: {
+                        enabled: true,
+                        title: 'Awesome NFT Collection',
+                        description: 'Browse all the unique NFTs from our first collection.',
+                        cta: {
+                            enabled: false
+                        }
+                    }
+                },
+                description: {
+                    title: 'About Our Collection',
+                    content: `
+                        <p>This gallery showcases every NFT from the "Awesome" collection.</p>
+                        <p>Each piece is unique. Find your favorite and grab it before it's gone!</p>
+                    `
+                }
+            },
+            {
+                name: 'Gallery 2 (Disabled)',
+                url: 'gallery2',
+                enabled: true,
+                projectName: 'gallery_2', // Connects to NMKR_PROJECT_UID_GALLERY_2 in .env
+                banner: {
+                    enabled: false, // Set to false to hide this gallery's banner
+                    image: 'https://placehold.co/1200x400/1E1E1E/11f250?text=Gallery+2+Banner',
+                    mobileImage: 'https://placehold.co/800x600/1E1E1E/11f250?text=Gallery+2+Mobile',
+                    overlay: {
+                        enabled: true,
+                        title: 'Second Collection (Coming Soon)',
+                        description: 'Our second collection will be available here soon.',
+                        cta: {
+                            enabled: false
+                        }
+                    }
+                },
+                description: {
+                    title: 'Our Second Collection',
+                    content: `
+                        <p>This gallery is not yet active. Check back soon for our next drop!</p>
+                    `
+                }
             }
         ]
     },

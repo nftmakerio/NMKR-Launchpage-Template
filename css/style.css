@@ -202,8 +202,14 @@ nav {
     margin: 0 auto;
 }
 
-.logo img {
+.logo {
     height: 40px;
+}
+
+.logo img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
 }
 
 .nav-links a {
@@ -1033,4 +1039,134 @@ footer {
     font-size: 0.85em;
     margin-top: 1.25rem !important;
     opacity: 0.8;
+}
+
+/* NFT Gallery Styles */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.nft-card {
+    position: relative;
+    background: var(--card-background);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.nft-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.nft-image-container {
+    width: 100%;
+    padding-top: 100%; /* 1:1 Aspect Ratio */
+    position: relative;
+    background-color: var(--stats-background);
+}
+
+.nft-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nft-info {
+    padding: 1rem;
+    text-align: center;
+}
+
+.nft-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nft-price {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.nft-card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nft-card:hover .nft-card-overlay {
+    opacity: 1;
+}
+
+.buy-now-button {
+    background-color: var(--primary-color);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.buy-now-button:hover {
+    background-color: var(--hover-color);
+}
+
+.buy-now-button:disabled {
+    background-color: #888;
+    cursor: not-allowed;
+}
+
+/* Sold State */
+.nft-card.sold .nft-image {
+    filter: grayscale(100%);
+}
+
+.nft-card.sold .nft-info {
+    opacity: 0.6;
+}
+
+.nft-price.sold {
+    color: var(--stats-text);
+}
+
+.nft-card.sold:hover .nft-card-overlay {
+    opacity: 1;
+}
+
+.loading-message, .error-message {
+    text-align: center;
+    grid-column: 1 / -1;
+    padding: 2rem;
+    font-size: 1.2rem;
+}
+
+.error-message {
+    color: #ff6b6b;
+}
+
+@media (max-width: 600px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
 } 

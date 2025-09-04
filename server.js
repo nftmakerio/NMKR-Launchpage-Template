@@ -313,6 +313,59 @@ app.get('/api/pricelist/:projectName', async (req, res) => {
     }
 });
 
+// Get all NFTs for a gallery
+app.get('/api/nfts/:projectName', async (req, res) => {
+    const { projectName } = req.params;
+    const cacheKey = `nfts_${projectName.toLowerCase()}`;
+
+    if (appCache.has(cacheKey)) {
+        console.log(`[CACHE] Serving NFTs for ${projectName} from cache.`);
+        return res.json(appCache.get(cacheKey));
+    }
+
+    try {
+        const projectUid = projectUids[projectName.toLowerCase()];
+        if (!projectUid) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        let allNfts = [];
+        let page = 1;
+        const limit = 50; // Max per page
+        let hasMore = true;
+
+        while (hasMore) {
+            const url = `${NMKR_API_BASE_URL}/v2/GetNfts/${projectUid}/all/${limit}/${page}?orderby=id`;
+            console.log(`[INFO] Fetching page ${page} for project ${projectName}`);
+            const response = await axios.get(url, {
+                headers: { 'Authorization': `Bearer ${NMKR_API_KEY}` }
+            });
+
+            if (response.data && response.data.length > 0) {
+                allNfts = allNfts.concat(response.data);
+                if (response.data.length < limit) {
+                    hasMore = false;
+                } else {
+                    page++;
+                }
+            } else {
+                hasMore = false;
+            }
+        }
+        
+        appCache.set(cacheKey, allNfts);
+        res.json(allNfts);
+
+    } catch (error) {
+        console.error(`[ERROR] Failed to fetch NFTs for project: ${projectName}`, {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+        });
+        res.status(500).json({ error: 'Failed to fetch NFTs' });
+    }
+});
+
 // Catch-all route for client-side routing (subpages)
 app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {

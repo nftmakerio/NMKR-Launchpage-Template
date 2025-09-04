@@ -69,6 +69,7 @@ const config = {
             accentText: '#000000'   // Text color on accent backgrounds
         },
         banner: {
+            enabled: true,                // Set to false to hide the main page banner entirely
             image: 'path/to/your/banner.jpg', // Example: 'https://placehold.co/1200x400/11f250/000000?text=Banner'
             overlay: {
                 enabled: true,
@@ -160,9 +161,10 @@ site: {
         accentText: '#000000'            // Text color on accent backgrounds
     },
     banner: {
+        enabled: true,                // Set to false to hide the main page banner entirely
         image: 'path/to/your/banner.jpg', // URL or path to your banner image. Example: 'https://placehold.co/1200x400/11f250/000000?text=Banner'
         overlay: {
-            enabled: true,                // Set to false to hide the overlay
+            enabled: true,                // Set to false to hide the overlay text and button
             title: 'Your Banner Title',
             description: 'Your banner description text',
             cta: {
@@ -239,6 +241,75 @@ social: {
     twitter: 'https://twitter.com/yourproject',
     discord: 'https://discord.gg/yourproject',
     telegram: 'https://t.me/yourproject'
+}
+```
+
+### Subpages Configuration
+This template supports two types of subpages, which can be configured in the `subpages` object in `js/config.js`.
+
+#### Content Pages
+Content pages are flexible subpages where you can display a collection of different project cards. This is useful for showcasing multiple minting projects, different collections, or featured items.
+
+**Configuration:**
+- Add a page object to the `subpages.contentPages` array.
+- Each page can have its own banner, description, and an array of `projects`.
+
+```javascript
+// js/config.js
+subpages: {
+    enabled: true,
+    showInNavbar: true,
+    contentPages: [
+        {
+            name: 'Featured Drops',
+            url: 'featured',
+            enabled: true,
+            banner: {
+                enabled: true, // Set to false to hide this subpage's banner
+                // ...
+            },
+            description: { /* ... */ },
+            projects: [
+                {
+                    name: 'Project A',
+                    projectName: 'project_a',
+                    // ...
+                },
+                {
+                    name: 'Project B',
+                    projectName: 'project_b',
+                    // ...
+                }
+            ]
+        }
+    ]
+}
+```
+
+#### Gallery Pages
+Gallery pages are designed to showcase every NFT from a single project in a grid view. This is perfect for secondary sales or allowing users to browse an entire collection.
+
+**Configuration:**
+- Add a page object to the `subpages.galleryPages` array.
+- Each gallery page is linked to a **single** `projectName`. This `projectName` must have a corresponding `NMKR_PROJECT_UID_` entry in your `.env` file.
+
+```javascript
+// js/config.js
+subpages: {
+    // ...
+    galleryPages: [
+        {
+            name: 'Main Collection',
+            url: 'collection',
+            enabled: true,
+            projectName: 'main_collection', // Corresponds to NMKR_PROJECT_UID_MAIN_COLLECTION in .env
+            banner: {
+                enabled: true, // Set to false to hide this gallery's banner
+                // ...
+            },
+            description: { /* ... */ }
+        }
+    ]
 }
 ```
 
